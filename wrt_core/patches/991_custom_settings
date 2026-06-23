@@ -17,3 +17,22 @@ if uci show dropbear | grep -q "DirectInterface"; then
     uci commit dropbear
     /etc/init.d/dropbear restart
 fi
+
+# 设置自定义主机名（仅在当前主机名为默认值时才设置，避免覆盖用户已自定义的主机名）
+current_hostname=$(uci get system.@system[0].hostname 2>/dev/null)
+case "$current_hostname" in
+    "ImmortalWRT"|"LibWrt"|"")
+        uci set system.@system[0].hostname='iStoerOS'
+        uci commit system
+        /etc/init.d/system reload
+        ;;
+esac
+
+# 设置局域网IP（仅在当前为默认值时才设置，避免覆盖用户已自定义的IP）
+current_lan_ip=$(uci get network.lan.ipaddr 2>/dev/null)
+case "$current_lan_ip" in
+    "192.168.1.1"*|"192.168.2.1"*|"")
+        uci set network.lan.ipaddr='192.168.68.1/24'
+        uci commit network
+        ;;
+esac
